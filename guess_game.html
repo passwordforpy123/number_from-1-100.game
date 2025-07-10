@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Guess the Number!</title>
+  <style>
+    :root {
+      /* Light mode colors */
+      --bg-gradient-start: #89f7fe;
+      --bg-gradient-end: #66a6ff;
+      --text-color: #333;
+      --container-bg: #fff;
+      --button-bg: #66a6ff;
+      --button-hover-bg: #4b91f7;
+      --input-border: #ccc;
+      --footer-color: #666;
+      --footer-link-color: #7289da;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      text-align: center;
+      padding-top: 50px;
+      color: var(--text-color);
+      margin-bottom: 60px;
+      transition: background 0.5s, color 0.5s;
+      position: relative;
+      min-height: 100vh;
+    }
+    /* Dark mode overrides */
+    body.dark-mode {
+      --bg-gradient-start: #1e1e1e;
+      --bg-gradient-end: #121212;
+      --text-color: #eee;
+      --container-bg: #2c2c2c;
+      --button-bg: #3a76f0;
+      --button-hover-bg: #285ec7;
+      --input-border: #555;
+      --footer-color: #aaa;
+      --footer-link-color: #93b4ff;
+    }
+    #darkModeToggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: var(--button-bg);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+      z-index: 9999;
+    }
+    #darkModeToggle:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    /* Admin container hidden by default */
+    #admin-container {
+      max-width: 450px;
+      margin: 10px auto 20px auto;
+      text-align: center;
+      display: none; /* Hidden initially */
+      transition: opacity 0.3s ease;
+      background: var(--container-bg);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      color: var(--text-color);
+    }
+    #admin-container input[type="password"],
+    #admin-container input[type="text"],
+    #admin-container input[type="number"] {
+      padding: 8px;
+      font-size: 16px;
+      width: 220px;
+      border-radius: 5px;
+      border: 1px solid var(--input-border);
+      margin: 5px 8px 15px 8px;
+      background-color: var(--container-bg);
+      color: var(--text-color);
+      transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+    }
+    #admin-container button {
+      padding: 8px 15px;
+      font-size: 16px;
+      border-radius: 5px;
+      background: var(--button-bg);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+      margin: 5px;
+    }
+    #admin-container button:hover {
+      background: var(--button-hover-bg);
+    }
+    #adminMessage, #banMessage, #settingsMessage {
+      margin-top: 10px;
+      font-weight: bold;
+      transition: color 0.5s;
+      min-height: 20px;
+    }
+
+    #difficulty-container {
+      max-width: 400px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    #difficulty-container button {
+      width: 100%;
+      padding: 12px 0;
+      font-size: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      background-color: var(--button-bg);
+      border: none;
+      color: white;
+      transition: background-color 0.3s;
+      user-select: none;
+    }
+    #difficulty-container button:hover {
+      background-color: var(--button-hover-bg);
+    }
+
+    #game-container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 15px;
+      display: inline-block;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      transition: transform 0.3s, background-color 0.5s, color 0.5s;
+      max-width: 400px;
+      color: var(--text-color);
+    }
+    #game-container:hover {
+      transform: scale(1.02);
+    }
+    input[type="number"], input[type="text"] {
+      padding: 8px;
+      font-size: 18px;
+      width: 150px;
+      margin-right: 10px;
+      border-radius: 5px;
+      border: 1px solid var(--input-border);
+      background-color: var(--container-bg);
+      color: var(--text-color);
+      transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+    }
+    button {
+      padding: 8px 15px;
+      font-size: 18px;
+      border: none;
+      background-color: var(--button-bg);
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: var(--button-hover-bg);
+    }
+    #message {
+      margin: 20px 0;
+      font-size: 20px;
+      color: var(--text-color);
+      transition: color 0.5s;
+    }
+    #leaderboard {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      color: var(--text-color);
+      transition: color 0.5s;
+    }
+    #leaderboard h3 {
+      text-align: center;
+    }
+    #leaderboard ul {
+      list-style: none;
+      padding: 0;
+    }
+    #leaderboard li {
+      background: #f0f0f0;
+      margin: 5px 0;
+      padding: 5px 10px;
+      border-radius: 5px;
+      color: #333;
+      transition: background-color 0.5s, color 0.5s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    body.dark-mode #leaderboard li {
+      background: #444;
+      color: #eee;
+    }
+    #leaderboard li button {
+      background: transparent;
+      border: none;
+      color: red;
+      cursor: pointer;
+      font-size: 16px;
+      user-select: none;
+      padding: 0 5px;
+      transition: color 0.3s;
+    }
+    #leaderboard li button:hover {
+      color: darkred;
+    }
+    #skipWinBtn {
+      margin-top: 10px;
+      display: none;
+      font-size: 14px;
+      padding: 6px 12px;
+      background-color: #555;
+      color: white;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    #skipWinBtn:hover {
+      background-color: #333;
+    }
+    footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      color: var(--footer-color);
+      user-select: none;
+      transition: color 0.5s;
+    }
+    footer a {
+      color: var(--footer-link-color);
+      text-decoration: none;
+      vertical-align: middle;
+      transition: color 0.5s;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+    footer img {
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    #logsContainer {
+      max-width: 450px;
+      margin: 15px auto;
+      white-space: pre-wrap;
+      background: var(--container-bg);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      color: var(--text-color);
+      font-family: monospace;
+      display: none;
+      height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <button id="darkModeToggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+
+  <!-- Admin container -->
+  <div id="admin-container">
+    <input type="password" id="adminPassword" placeholder="Enter admin password" />
+    <button onclick="checkAdminPassword()">Enter Admin Mode</button>
+    <p id="adminMessage"></p>
+
+    <hr>
+
+    <h3>Ban Users</h3>
+    <input type="text" id="banInput" placeholder="Discord tag to ban (e.g. em.mez0.codes)" />
+    <button onclick="addBannedUser()">Ban User</button>
+    <button onclick="removeBannedUser()">Unban User</button>
+    <p id="banMessage"></p>
+
+    <hr>
+
+    <h3>Game Settings</h3>
+    <label>Easy max guesses: <input type="number" id="maxGuessesEasy" min="1" /></label><br/>
+    <label>Medium max guesses: <input type="number" id="maxGuessesMedium" min="1" /></label><br/>
+    <label>Hard max guesses: <input type="number" id="maxGuessesHard" min="1" /></label><br/>
+    <label>Max number range: <input type="number" id="maxNumber" min="10" /></label><br/>
+    <button onclick="saveGameSettings()">Save Settings</button>
+    <p id="settingsMessage"></p>
+
+    <hr>
+
+    <button onclick="resetLeaderboard()">Reset Leaderboard</button>
+    <button id="showLogsBtn" onclick="toggleLogs()">Show Logs</button>
+
+    <div id="logsContainer"></div>
+  </div>
+
+  <div id="difficulty-container">
+    <button onclick="startGame('easy')">Easy (default guesses)</button>
+    <button onclick="startGame('medium')">Medium (default guesses)</button>
+    <button onclick="startGame('hard')">Hard (default guesses)</button>
+  </div>
+
+  <div id="game-container">
+    <h1>🎯 Guess the Number!</h1>
+    <p id="message">Choose a difficulty to start.</p>
+    <br>
+    <input type="number" id="guessInput" placeholder="1-100" disabled />
+    <button id="guessBtn" onclick="makeGuess()" disabled>Guess</button>
+    <p id="guessesLeft"></p>
+    <button id="playAgainBtn" onclick="startGame(currentDifficulty)" style="display:none;">Play Again</button>
+    <button id="skipWinBtn" onclick="adminSkipWin()">Skip to Win (Admin)</button>
+    <p>🎮 Score: <span id="score">0</span> | 🏆 High Score: <span id="highScore">0</span></p>
+  </div>
+
+  <div id="leaderboard">
+    <h3>🏅 Global Leaderboard</h3>
+    <ul id="leaderboardList"></ul>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    // Firebase config - replace with your actual Firebase project config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      // Add other config fields if needed
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const ADMIN_PASSWORD = "ilovemen";
+
+    let secretNumber;
+    let maxGuesses;
+    let guessesLeft;
+    let currentDifficulty = null;
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    document.getElementById("highScore").textContent = highScore;
+    let adminMode = false;
+
+    // Banned users stored in Firestore collection "bannedUsers"
+    let bannedUsers = [];
+
+    // Logs array, max 100 entries
+    let gameLogs = [];
+
+    const guessInput = document.getElementById("guessInput");
+    const guessBtn = document.getElementById("guessBtn");
+    const logsContainer = document.getElementById("logsContainer");
+    const showLogsBtn = document.getElementById("showLogsBtn");
+
+    // Load banned users from Firestore
+    async function loadBannedUsers() {
+      try {
+        const snapshot = await db.collection("bannedUsers").get();
+        bannedUsers = snapshot.docs.map(doc => doc.id.toLowerCase());
+        if (adminMode) {
+          logEvent(`Loaded banned users: ${bannedUsers.join(", ")}`);
+        }
+      } catch (e) {
+        console.error("Error loading banned users:", e);
+      }
+    }
+
+    // Dark mode toggle and persistence
+    const darkModeToggleBtn = document.getElementById('darkModeToggle');
+    function applyDarkMode(enabled) {
+      if(enabled) {
+        document.body.classList.add('dark-mode');
+        darkModeToggleBtn.textContent = '☀️ Light Mode';
+        localStorage.setItem('darkMode', 'enabled');
+      } else {
+        document.body.classList.remove('dark-mode');
+        darkModeToggleBtn.textContent = '🌙 Dark Mode';
+        localStorage.setItem('darkMode', 'disabled');
+      }
+    }
+    function toggleDarkMode() {
+      const isDark = document.body.classList.contains('dark-mode');
+      applyDarkMode(!isDark);
+    }
+    window.onload = async function() {
+      if(localStorage.getItem('darkMode') === 'enabled') {
+        applyDarkMode(true);
+      }
+      loadGameSettings();
+      await loadBannedUsers();
+      renderLeaderboard();
+    };
+
+    // Toggle admin panel with Ctrl+Shift+A
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+        const adminContainer = document.getElementById('admin-container');
+        if (adminContainer.style.display === 'none' || adminContainer.style.display === '') {
+          adminContainer.style.display = 'block';
+          document.getElementById('adminPassword').focus();
+        } else {
+          adminContainer.style.display = 'none';
+          document.getElementById('adminMessage').textContent = '';
+          logsContainer.style.display = 'none';
+          showLogsBtn.textContent = "Show Logs";
+        }
+      }
+    });
+
+    function checkAdminPassword() {
+      const input = document.getElementById("adminPassword").value.trim();
+      const message = document.getElementById("adminMessage");
+      const skipBtn = document.getElementById("skipWinBtn");
+
+      if (input === ADMIN_PASSWORD) {
+        adminMode = true;
+        message.style.color = "green";
+        message.textContent = "✅ Admin mode activated!";
+        skipBtn.style.display = "inline-block";
+        document.getElementById('adminPassword').value = '';
+        renderLeaderboard();
+        loadBannedUsers();
+        renderLogs();
+      } else {
+        adminMode = false;
+        message.style.color = "red";
+        message.textContent = "❌ Wrong password.";
+        skipBtn.style.display = "none";
+      }
+    }
+
+    function startGame(difficulty) {
+      currentDifficulty = difficulty;
+      switch(difficulty) {
+        case 'easy': maxGuesses = gameSettings.easy; break;
+        case 'medium': maxGuesses = gameSettings.medium; break;
+        case 'hard': maxGuesses = gameSettings.hard; break;
+        default: maxGuesses = 5;
+      }
+      guessesLeft = maxGuesses;
+      secretNumber = Math.floor(Math.random() * gameSettings.maxNumber) + 1;
+
+      document.getElementById("message").textContent = "Enter your guess!";
+      guessInput.disabled = false;
+      guessBtn.disabled = false;
+      document.getElementById("playAgainBtn").style.display = "none";
+      document.getElementById("guessesLeft").textContent = "Guesses left: " + guessesLeft;
+      guessInput.value = "";
+      score = 0;
+      updateScoreDisplay();
+    }
+
+    function makeGuess() {
+      const guess = parseInt(guessInput.value);
+      if (isNaN(guess) || guess < 1 || guess > gameSettings.maxNumber) {
+        document.getElementById("message").textContent = `Please enter a number between 1 and ${gameSettings.maxNumber}!`;
+        return;
+      }
+
+      guessesLeft--;
+
+      if (guess < secretNumber) {
+        document.getElementById("message").textContent = "Too low! Try a higher number.";
+        logEvent(`Guess ${guess} was too low.`);
+      } else if (guess > secretNumber) {
+        document.getElementById("message").textContent = "Too high! Try a lower number.";
+        logEvent(`Guess ${guess} was too high.`);
+      } else {
+        document.getElementById("message").textContent = `🎉 You guessed it! The number was ${secretNumber}.`;
+        score += 10;
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem("highScore", highScore);
+        }
+        logEvent(`User guessed correctly with ${guess}. Score +10.`);
+        updateLeaderboard(score);
+        confetti();
+        endGame();
+        return;
+      }
+
+      if (guessesLeft <= 0) {
+        document.getElementById("message").textContent = `💥 You lost! The number was ${secretNumber}.`;
+        score = 0;
+        logEvent(`User lost the game. No guesses left.`);
+        endGame();
+      } else {
+        document.getElementById("guessesLeft").textContent = "Guesses left: " + guessesLeft;
+      }
+
+      updateScoreDisplay();
+    }
+
+    function endGame() {
+      guessInput.disabled = true;
+      guessBtn.disabled = true;
+      document.getElementById("playAgainBtn").style.display = "inline-block";
+    }
+
+    function updateScoreDisplay() {
+      document.getElementById("score").textContent = score;
+      document.getElementById("highScore").textContent = highScore;
+    }
+
+    async function updateLeaderboard(newScore) {
+      let nickname = prompt("Congrats! Enter your Discord tag for the leaderboard:", "em.mez0.codes");
+      if (!nickname || nickname.trim() === "") {
+        nickname = "Anonymous";
+      }
+      const nameKey = nickname.toLowerCase();
+
+      if (bannedUsers.includes(nameKey)) {
+        alert("❌ Sorry, your Discord tag is banned from submitting scores.");
+        logEvent(`Banned user ${nickname} tried to submit a score.`);
+        return;
+      }
+
+      try {
+        const docRef = db.collection("leaderboard").doc(nameKey);
+        const doc = await docRef.get();
+
+        if (doc.exists) {
+          const existingScore = doc.data().score || 0;
+          await docRef.update({ score: existingScore + newScore });
+          logEvent(`Updated existing user ${nickname} with added score ${newScore}`);
+        } else {
+          await docRef.set({ name: nickname, score: newScore });
+          logEvent(`Added new user ${nickname} with score ${newScore}`);
+        }
+        renderLeaderboard();
+      } catch (error) {
+        console.error("Error updating leaderboard: ", error);
+      }
+    }
+
+    async function renderLeaderboard() {
+      const list = document.getElementById("leaderboardList");
+      list.innerHTML = "";
+
+      try {
+        const querySnapshot = await db.collection("leaderboard")
+          .orderBy("score", "desc")
+          .limit(5)
+          .get();
+
+        let index = 1;
+        querySnapshot.forEach(doc => {
+          const entry = doc.data();
+          const li = document.createElement("li");
+
+          // Left side: #rank: name — score points
+          const textSpan = document.createElement("span");
+          textSpan.textContent = `#${index}: ${entry.name} — ${entry.score} points`;
+          li.appendChild(textSpan);
+
+          // Admin controls
+          if (adminMode) {
+            // Delete button
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "❌";
+            deleteBtn.title = "Delete this player";
+
+            deleteBtn.onclick = async () => {
+              if (confirm(`Delete ${entry.name} from leaderboard?`)) {
+                try {
+                  await db.collection("leaderboard").doc(doc.id).delete();
+                  renderLeaderboard();
+                  logEvent(`Admin deleted ${entry.name} from leaderboard.`);
+                } catch (err) {
+                  console.error("Error deleting entry:", err);
+                }
+              }
+            };
+            li.appendChild(deleteBtn);
+          }
+
+          list.appendChild(li);
+          index++;
+        });
+      } catch (error) {
+        console.error("Error fetching leaderboard: ", error);
+      }
+    }
+
+    async function adminSkipWin() {
+      if (!adminMode) return;
+      document.getElementById("message").textContent = `🎉 Admin skipped! The number was ${secretNumber}.`;
+      score += 10;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+      }
+      updateLeaderboard(score);
+      confetti();
+      endGame();
+    }
+
+    // Admin ban/unban user
+    async function addBannedUser() {
+      if (!adminMode) return;
+      const userToBan = document.getElementById("banInput").value.trim().toLowerCase();
+      const banMsg = document.getElementById("banMessage");
+      if (!userToBan) {
+        banMsg.style.color = "red";
+        banMsg.textContent = "Enter a Discord tag to ban.";
+        return;
+      }
+      try {
+        await db.collection("bannedUsers").doc(userToBan).set({ banned: true });
+        bannedUsers.push(userToBan);
+        banMsg.style.color = "green";
+        banMsg.textContent = `User '${userToBan}' banned successfully.`;
+        logEvent(`Admin banned user: ${userToBan}`);
+        document.getElementById("banInput").value = "";
+      } catch (err) {
+        banMsg.style.color = "red";
+        banMsg.textContent = "Error banning user.";
+        console.error(err);
+      }
+    }
+
+    async function removeBannedUser() {
+      if (!adminMode) return;
+      const userToUnban = document.getElementById("banInput").value.trim().toLowerCase();
+      const banMsg = document.getElementById("banMessage");
+      if (!userToUnban) {
+        banMsg.style.color = "red";
+        banMsg.textContent = "Enter a Discord tag to unban.";
+        return;
+      }
+      try {
+        await db.collection("bannedUsers").doc(userToUnban).delete();
+        bannedUsers = bannedUsers.filter(u => u !== userToUnban);
+        banMsg.style.color = "green";
+        banMsg.textContent = `User '${userToUnban}' unbanned successfully.`;
+        logEvent(`Admin unbanned user: ${userToUnban}`);
+        document.getElementById("banInput").value = "";
+      } catch (err) {
+        banMsg.style.color = "red";
+        banMsg.textContent = "Error unbanning user.";
+        console.error(err);
+      }
+    }
+
+    // Game settings with defaults and persistence
+    let gameSettings = {
+      easy: 10,
+      medium: 5,
+      hard: 3,
+      maxNumber: 100
+    };
+
+    function loadGameSettings() {
+      const savedSettings = localStorage.getItem("gameSettings");
+      if (savedSettings) {
+        try {
+          gameSettings = JSON.parse(savedSettings);
+        } catch {}
+      }
+      // Update admin inputs if admin mode active
+      if (adminMode) {
+        document.getElementById("maxGuessesEasy").value = gameSettings.easy;
+        document.getElementById("maxGuessesMedium").value = gameSettings.medium;
+        document.getElementById("maxGuessesHard").value = gameSettings.hard;
+        document.getElementById("maxNumber").value = gameSettings.maxNumber;
+      }
+      // Update difficulty buttons text
+      updateDifficultyButtons();
+    }
+
+    function updateDifficultyButtons() {
+      const easyBtn = document.querySelector("#difficulty-container button:nth-child(1)");
+      const medBtn = document.querySelector("#difficulty-container button:nth-child(2)");
+      const hardBtn = document.querySelector("#difficulty-container button:nth-child(3)");
+      easyBtn.textContent = `Easy (${gameSettings.easy} guesses)`;
+      medBtn.textContent = `Medium (${gameSettings.medium} guesses)`;
+      hardBtn.textContent = `Hard (${gameSettings.hard} guesses)`;
+    }
+
+    function saveGameSettings() {
+      if (!adminMode) return;
+      const easy = parseInt(document.getElementById("maxGuessesEasy").value);
+      const medium = parseInt(document.getElementById("maxGuessesMedium").value);
+      const hard = parseInt(document.getElementById("maxGuessesHard").value);
+      const maxNum = parseInt(document.getElementById("maxNumber").value);
+      const settingsMsg = document.getElementById("settingsMessage");
+
+      if ([easy, medium, hard, maxNum].some(v => isNaN(v) || v < 1)) {
+        settingsMsg.style.color = "red";
+        settingsMsg.textContent = "Please enter valid positive numbers for all settings.";
+        return;
+      }
+      gameSettings.easy = easy;
+      gameSettings.medium = medium;
+      gameSettings.hard = hard;
+      gameSettings.maxNumber = maxNum;
+      localStorage.setItem("gameSettings", JSON.stringify(gameSettings));
+      settingsMsg.style.color = "green";
+      settingsMsg.textContent = "Settings saved!";
+      updateDifficultyButtons();
+      logEvent(`Admin updated game settings.`);
+    }
+
+    // Reset leaderboard completely
+    async function resetLeaderboard() {
+      if (!adminMode) return;
+      if (!confirm("Are you sure you want to reset the entire leaderboard?")) return;
+      try {
+        const snapshot = await db.collection("leaderboard").get();
+        const batch = db.batch();
+        snapshot.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        renderLeaderboard();
+        logEvent("Admin reset the leaderboard.");
+      } catch (err) {
+        console.error("Error resetting leaderboard:", err);
+      }
+    }
+
+    // Logs - simple UI for admin logs
+    function logEvent(msg) {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = `[${timestamp}] ${msg}`;
+      gameLogs.push(logEntry);
+      if (gameLogs.length > 100) gameLogs.shift(); // keep max 100 logs
+      if (adminMode) renderLogs();
+      console.log(logEntry);
+    }
+
+    function renderLogs() {
+      if (!adminMode) return;
+      logsContainer.style.display = "block";
+      logsContainer.textContent = gameLogs.join("\n");
+    }
+
+    function toggleLogs() {
+      if (logsContainer.style.display === "block") {
+        logsContainer.style.display = "none";
+        showLogsBtn.textContent = "Show Logs";
+      } else {
+        logsContainer.style.display = "block";
+        showLogsBtn.textContent = "Hide Logs";
+      }
+    }
+  </script>
+
+  <footer>
+    Made by Mezo — 
+    <a href="https://discord.gg/em.mez0.codes" target="_blank" rel="noopener noreferrer">
+      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111370.png" alt="Discord" /> Discord: em.mez0.codes
+    </a>
+  </footer>
+</body>
+</html>
